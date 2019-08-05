@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package cli implements the commandline interface for Pixiecore.
-package cli // import "go.universe.tf/netboot/pixiecore/cli"
+package cli // import "github.com/danderson/netboot/pixiecore/cli"
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.universe.tf/netboot/pixiecore"
+	"github.com/danderson/netboot/pixiecore"
 )
 
 // Ipxe is the set of ipxe binaries for supported firmwares.

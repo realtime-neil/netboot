@@ -3,9 +3,9 @@ package cli
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"go.universe.tf/netboot/dhcp6"
-	"go.universe.tf/netboot/dhcp6/pool"
-	"go.universe.tf/netboot/pixiecore"
+	"github.com/danderson/netboot/dhcp6"
+	"github.com/danderson/netboot/dhcp6/pool"
+	"github.com/danderson/netboot/pixiecore"
 	"net"
 	"strings"
 	"time"

@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"go.universe.tf/netboot/pixiecore"
+	"github.com/danderson/netboot/pixiecore"
 )
 
 var apiCmd = &cobra.Command{

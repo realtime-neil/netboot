@@ -69,23 +69,31 @@ go-bindata:
 	GO111MODULE=off go get github.com/go-bindata/go-bindata/...
 
 
+IPXE_BINS := \
+  third_party/ipxe/bin-i386-efi/ipxe.efi \
+  third_party/ipxe/bin-x86_64-efi/ipxe.efi \
+  third_party/ipxe/bin/ipxe.pxe \
+  third_party/ipxe/bin/undionly.kpxe
+
+# https://stackoverflow.com/questions/19571391/remove-prefix-with-make
+# https://www.gnu.org/software/make/manual/html_node/File-Function.html
+third_party/ipxe/bin%: $(HERE)/pixiecore/boot.ipxe
+	(cd third_party/ipxe/src && $(MAKE) $(@:third_party/ipxe/%=%) EMBED=$<;)
+	mkdir -vp $(dir $@)
+	cp -v third_party/ipxe/src/$(@:third_party/ipxe/%=%) $@
+
+
+ipxe/ipxe.go: go-bindata $(IPXE_BINS)
+	rm -vf $@
+	go-bindata -o $@ -pkg ipxe -nometadata -nomemcopy -prefix third_party/ipxe $(sort $(dir $(IPXE_BINS)))
+	gofmt -s -w $@
+
+
 .PHONY: update-ipxe
-update-ipxe: go-bindata
-	{ \
-	EMBED=$(HERE)/pixiecore/boot.ipxe \
-	$(MAKE) -C third_party/ipxe/src \
-	bin/ipxe.pxe \
-	bin/undionly.kpxe \
-	bin-x86_64-efi/ipxe.efi \
-	bin-i386-efi/ipxe.efi \
-	; }
-	$(RM) -r third_party/ipxe/bin
-	mkdir -vp third_party/ipxe/bin
-	mv -f third_party/ipxe/src/bin/ipxe.pxe            third_party/ipxe/bin/ipxe.pxe
-	mv -f third_party/ipxe/src/bin/undionly.kpxe       third_party/ipxe/bin/undionly.kpxe
-	mv -f third_party/ipxe/src/bin-x86_64-efi/ipxe.efi third_party/ipxe/bin/ipxe-x86_64.efi 
-	mv -f third_party/ipxe/src/bin-i386-efi/ipxe.efi   third_party/ipxe/bin/ipxe-i386.efi
-	go-bindata -o third_party/ipxe/ipxe-bin.go -pkg ipxe -nometadata -nomemcopy -prefix third_party/ipxe/bin/ third_party/ipxe/bin
-	gofmt -s -w third_party/ipxe/ipxe-bin.go
-	$(RM) -r third_party/ipxe/bin
+update-ipxe: ipxe/ipxe.go
+
+
+.PHONY: clean
+clean:
+	rm -rf $(sort $(dir $(IPXE_BINS)))
 	$(MAKE) -C third_party/ipxe/src veryclean

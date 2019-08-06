@@ -15,16 +15,16 @@
 package main
 
 import (
+	"github.com/danderson/netboot/ipxe"
 	"github.com/danderson/netboot/pixiecore"
 	"github.com/danderson/netboot/pixiecore/cli"
-	"github.com/danderson/netboot/third_party/ipxe"
 )
 
 func main() {
-	cli.Ipxe[pixiecore.FirmwareX86PC] = ipxe.MustAsset("undionly.kpxe")
-	cli.Ipxe[pixiecore.FirmwareEFI32] = ipxe.MustAsset("ipxe-i386.efi")
-	cli.Ipxe[pixiecore.FirmwareEFI64] = ipxe.MustAsset("ipxe-x86_64.efi")
-	cli.Ipxe[pixiecore.FirmwareEFIBC] = ipxe.MustAsset("ipxe-x86_64.efi")
-	cli.Ipxe[pixiecore.FirmwareX86Ipxe] = ipxe.MustAsset("ipxe.pxe")
+	cli.Ipxe[pixiecore.FirmwareX86PC] = ipxe.MustAsset("bin/undionly.kpxe")
+	cli.Ipxe[pixiecore.FirmwareEFI32] = ipxe.MustAsset("bin-i386-efi/ipxe.efi")
+	cli.Ipxe[pixiecore.FirmwareEFI64] = ipxe.MustAsset("bin-x86_64-efi/ipxe.efi")
+	cli.Ipxe[pixiecore.FirmwareEFIBC] = ipxe.MustAsset("bin-x86_64-efi/ipxe.efi")
+	cli.Ipxe[pixiecore.FirmwareX86Ipxe] = ipxe.MustAsset("bin/ipxe.pxe")
 	cli.CLI()
 }

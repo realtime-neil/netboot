@@ -75,10 +75,25 @@ IPXE_BINS := \
   third_party/ipxe/bin/ipxe.pxe \
   third_party/ipxe/bin/undionly.kpxe
 
+
+# be clever (but not too clever) with Makefile targets and variables
+#
 # https://stackoverflow.com/questions/19571391/remove-prefix-with-make
 # https://www.gnu.org/software/make/manual/html_node/File-Function.html
+#
+# override BUILD_ID_CMD and BUILD_TIMESTAMP for reproducible builds
+#
+# https://github.com/ipxe/ipxe/pull/82
+# https://git.ipxe.org/ipxe.git/commitdiff/58f6e553625c90d928ddd54b8f31634a5b26f05e
+# http://lists.ipxe.org/pipermail/ipxe-devel/2015-February/003978.html
 third_party/ipxe/bin%: $(HERE)/pixiecore/boot.ipxe
-	(cd third_party/ipxe/src && $(MAKE) $(@:third_party/ipxe/%=%) EMBED=$<;)
+	( \
+	$(MAKE) -C third_party/ipxe/src \
+	$(@:third_party/ipxe/%=%) \
+	BUILD_ID_CMD="echo 0x00000000" \
+	BUILD_TIMESTAMP="0x00000000" \
+	EMBED="$<" \
+	)
 	mkdir -vp $(dir $@)
 	cp -v third_party/ipxe/src/$(@:third_party/ipxe/%=%) $@
 
@@ -96,4 +111,4 @@ update-ipxe: ipxe/ipxe.go
 .PHONY: clean
 clean:
 	rm -rf $(sort $(dir $(IPXE_BINS)))
-	$(MAKE) -C third_party/ipxe/src veryclean
+	$(MAKE) -C third_party/ipxe/src clean veryclean

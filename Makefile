@@ -44,13 +44,15 @@ lint:
 
 
 .PHONY: ci-push-images
-ci-push-images: BINARY=pixiecore REGISTRY=pixiecore TAG=dev
+ci-push-images: BINARY := pixiecore
+ci-push-images: REGISTRY := pixiecore
+ci-push-images: TAG := dev
 ci-push-images: manifest-tool
-	$(MAKE) -f Makefile.inc push GOARCH=amd64   TAG=$(TAG)-amd64
-	$(MAKE) -f Makefile.inc push GOARCH=arm     TAG=$(TAG)-arm
-	$(MAKE) -f Makefile.inc push GOARCH=arm64   TAG=$(TAG)-arm64
-	$(MAKE) -f Makefile.inc push GOARCH=ppc64le TAG=$(TAG)-ppc64le
-	$(MAKE) -f Makefile.inc push GOARCH=s390x   TAG=$(TAG)-s390x
+	$(MAKE) -f Makefile.inc push BINARY=$(BINARY) REGISTRY=$(REGISTRY) GOARCH=amd64   TAG=$(TAG)-amd64
+	$(MAKE) -f Makefile.inc push BINARY=$(BINARY) REGISTRY=$(REGISTRY) GOARCH=arm     TAG=$(TAG)-arm
+	$(MAKE) -f Makefile.inc push BINARY=$(BINARY) REGISTRY=$(REGISTRY) GOARCH=arm64   TAG=$(TAG)-arm64
+	$(MAKE) -f Makefile.inc push BINARY=$(BINARY) REGISTRY=$(REGISTRY) GOARCH=ppc64le TAG=$(TAG)-ppc64le
+	$(MAKE) -f Makefile.inc push BINARY=$(BINARY) REGISTRY=$(REGISTRY) GOARCH=s390x   TAG=$(TAG)-s390x
 	{ \
 	manifest-tool push from-args \
 	--platforms linux/amd64,linux/arm,linux/arm64,linux/ppc64le,linux/s390x \

@@ -1,5 +1,13 @@
 # -*- mode: makefile-gmake -*-
 
+THIS := $(abspath $(lastword $(MAKEFILE_LIST)))
+HERE := $(patsubst %/,%,$(dir $(THIS)))
+CWD := $(shell pwd)
+
+$(info $$THIS is [${THIS}])
+$(info $$HERE is [${HERE}])
+$(info $$CWD is [${CWD}])
+
 # Inputs. Invoke from the parent makefile with these options set.
 GOARCH:=
 BINARY:=
@@ -10,55 +18,55 @@ DOCKER_SUDO:=
 GITCOMMIT:=
 GITBRANCH:=
 
-ifeq ($(GOARCH),)
-	$(error GOARCH not specified)
+ifeq (,$(strip $(GOARCH)))
+$(error undefined GOARCH)
 endif
-ifeq ($(BINARY),)
-	$(error BINARY not specified)
+ifeq (,$(strip $(REGISTRY)))
+$(error undefined REGISTRY)
 endif
-ifeq ($(TAG),)
-	$(error TAG not specified)
+ifeq (,$(strip $(BINARY)))
+$(error undefined BINARY)
 endif
-ifeq ($(REGISTRY),)
-	$(error REGISTRY not specified)
+ifeq (,$(strip $(TAG)))
+$(error undefined TAG)
 endif
 
 # Other variables.
-GITCOMMIT:=$(shell git describe --dirty --always)
+GITCOMMIT:=$(shell git describe --long --always --dirty)
 BUILD_DIR:=build/$(GOARCH)/$(BINARY)
 DOCKERCMD:=docker
 ifneq ($(DOCKER_SUDO),)
-	DOCKERCMD:=sudo docker
+DOCKERCMD:=sudo docker
 endif
-DOCKERFILE_BASE:=alpine:latest
+
+FROM_IMAGE:=alpine:latest
 ifneq ($(GOARCH),amd64)
-	DOCKERFILE_BASE:=$(GOARCH)/alpine:latest
+  FROM_IMAGE:=$(GOARCH)/alpine:latest
 endif
 ifeq ($(GOARCH),arm)
-	DOCKERFILE_BASE:=arm32v6/alpine:latest
+  FROM_IMAGE:=arm32v6/alpine:latest
 endif
 ifeq ($(GOARCH),arm64)
-	DOCKERFILE_BASE:=arm64v8/alpine:latest
+  FROM_IMAGE:=arm64v8/alpine:latest
 endif
+
+
+build/$(GOARCH)/$(BINARY)/$(BINARY):
+	mkdir -vp $(dir $@)
+	GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOARCH=$(GOARCH) GOARM=6 \
+		go build -o $@ $(HERE)/cmd/$(BINARY)
+
+
+.PHONY: image
+image: build/$(GOARCH)/$(BINARY)/$(BINARY)
+	$(DOCKERCMD) image build \
+	--build-arg BINARY=$(BINARY) \
+	--build-arg FROM_IMAGE=$(FROM_IMAGE) \
+	--tag $(REGISTRY)/$(BINARY):$(TAG) \
+	--file $(HERE)/Dockerfile \
+	$(dir $<)
+
 
 .PHONY: push
 push: image
-	$(DOCKERCMD) push $(REGISTRY)/$(BINARY):$(TAG)
-
-.PHONY: image
-image: dockerfile binary
-	$(DOCKERCMD) build -t $(REGISTRY)/$(BINARY):$(TAG) $(BUILD_DIR)
-
-.PHONY: dockerfile
-dockerfile: build-dir
-	perl -pe "s#alpine:latest#$(DOCKERFILE_BASE)#g" ./cmd/$(BINARY)/Dockerfile >$(BUILD_DIR)/Dockerfile
-
-.PHONY: binary
-binary: build-dir
-	GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOARCH=$(GOARCH) GOARM=6 \
-		$(GOCMD) build -o $(BUILD_DIR)/$(BINARY) \
-		./cmd/$(BINARY)
-
-.PHONY: build-dir
-build-dir:
-	mkdir -p $(BUILD_DIR)
+	$(DOCKERCMD) image push $(REGISTRY)/$(BINARY):$(TAG)

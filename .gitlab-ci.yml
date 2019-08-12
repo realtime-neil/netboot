@@ -1,7 +1,7 @@
-image: golang
+image: golang:alpine
 
-# services:
-#   - docker:dind
+services:
+  - docker:dind
 
 variables:
   BUILD_CODE: "${CI_JOB_ID}"
@@ -16,13 +16,7 @@ variables:
 build:
   script:
     - make
-
-check:
-  script:
     - make check
-
-push:
-  script:
     - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
     - make push
 

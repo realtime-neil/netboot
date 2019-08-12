@@ -14,6 +14,8 @@ variables:
   VCS_URL: "${CI_PROJECT_URL}"
 
 build:
+  before_script:
+    - apk add -U make
   script:
     - make
     - make check

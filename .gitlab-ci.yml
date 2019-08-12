@@ -15,7 +15,8 @@ variables:
 
 build:
   before_script:
-    - apk add -U make
+    - docker info
+    - apk add -U git make
   script:
     - make
     - make check

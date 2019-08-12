@@ -8,14 +8,9 @@ $(info $$THIS is [${THIS}])
 $(info $$HERE is [${HERE}])
 $(info $$CWD is [${CWD}])
 
-# Local customizations to the above.
-ifneq ($(wildcard Makefile.defaults),)
-include Makefile.defaults
-endif
 
 .PHONY: all
-all:
-	$(error Please request a specific thing, there is no default target)
+all: build
 
 
 .PHONY: manifest-tool
@@ -41,6 +36,10 @@ test:
 .PHONY: lint
 lint:
 	GO111MODULE=on go vet ./...
+
+
+.PHONY: check
+check: lint test
 
 
 .PHONY: ci-push-images

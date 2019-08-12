@@ -1,7 +1,7 @@
-image: docker:stable
+image: golang
 
-services:
-  - docker:dind
+# services:
+#   - docker:dind
 
 variables:
   BUILD_CODE: "${CI_JOB_ID}"

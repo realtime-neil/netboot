@@ -15,10 +15,10 @@ build:
     before_script:
       - docker info
       - apk add -U git make
-      script:
-        - make
-        - make check
-    - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
-    - make push
+    script:
+      - make
+      - make check
+      - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+      - make push
 
 # - docker image push "${DOCKER_REPO}:${DOCKER_TAG}"

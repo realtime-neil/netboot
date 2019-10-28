@@ -4,27 +4,95 @@ THIS := $(abspath $(lastword $(MAKEFILE_LIST)))
 HERE := $(patsubst %/,%,$(dir $(THIS)))
 CWD := $(shell pwd)
 
-$(info $$THIS is [${THIS}])
-$(info $$HERE is [${HERE}])
-$(info $$CWD is [${CWD}])
+
+LIBC_SO := $(shell find /usr/lib -name 'libc.so' -exec readlink -f {} +)
+ifneq (,$(findstring musl,$(LIBC_SO)))
+  GO_LDFLAGS := '-s -w -linkmode external -extldflags "-static"'
+else
+  GO_LDFLAGS := '-s -w'
+endif
+
+
+GO_FILES := \
+  $(HERE)/cmd/pixiecore-apache2/main.go \
+  $(HERE)/cmd/pixiecore/main.go \
+  $(HERE)/dhcp4/conn.go \
+  $(HERE)/dhcp4/conn_linux.go \
+  $(HERE)/dhcp4/conn_linux_test.go \
+  $(HERE)/dhcp4/conn_test.go \
+  $(HERE)/dhcp4/conn_unsupported.go \
+  $(HERE)/dhcp4/doc.go \
+  $(HERE)/dhcp4/options.go \
+  $(HERE)/dhcp4/options_test.go \
+  $(HERE)/dhcp4/packet.go \
+  $(HERE)/dhcp4/packet_test.go \
+  $(HERE)/dhcp6/address_pool.go \
+  $(HERE)/dhcp6/boot_configuration.go \
+  $(HERE)/dhcp6/conn.go \
+  $(HERE)/dhcp6/options.go \
+  $(HERE)/dhcp6/options_test.go \
+  $(HERE)/dhcp6/packet.go \
+  $(HERE)/dhcp6/packet_builder.go \
+  $(HERE)/dhcp6/packet_builder_test.go \
+  $(HERE)/dhcp6/packet_test.go \
+  $(HERE)/dhcp6/pool/random_address_pool.go \
+  $(HERE)/dhcp6/pool/random_address_pool_test.go \
+  $(HERE)/ipxe/ipxe.go \
+  $(HERE)/pcap/reader.go \
+  $(HERE)/pcap/reader_test.go \
+  $(HERE)/pcap/writer.go \
+  $(HERE)/pcap/writer_test.go \
+  $(HERE)/pixiecore/api-example/main.go \
+  $(HERE)/pixiecore/boot_configuration.go \
+  $(HERE)/pixiecore/booters.go \
+  $(HERE)/pixiecore/booters_test.go \
+  $(HERE)/pixiecore/cli/apicmd.go \
+  $(HERE)/pixiecore/cli/bootcmd.go \
+  $(HERE)/pixiecore/cli/bootipv6cmd.go \
+  $(HERE)/pixiecore/cli/cli.go \
+  $(HERE)/pixiecore/cli/debugcmd.go \
+  $(HERE)/pixiecore/cli/ipv6apicmd.go \
+  $(HERE)/pixiecore/cli/logging.go \
+  $(HERE)/pixiecore/cli/quickcmd.go \
+  $(HERE)/pixiecore/cli/v1compat.go \
+  $(HERE)/pixiecore/dhcp.go \
+  $(HERE)/pixiecore/dhcpv6.go \
+  $(HERE)/pixiecore/http.go \
+  $(HERE)/pixiecore/http_test.go \
+  $(HERE)/pixiecore/logging.go \
+  $(HERE)/pixiecore/pixicorev6.go \
+  $(HERE)/pixiecore/pixiecore.go \
+  $(HERE)/pixiecore/pxe.go \
+  $(HERE)/pixiecore/tftp.go \
+  $(HERE)/pixiecore/urlsign.go \
+  $(HERE)/pixiecore/urlsign_test.go \
+  $(HERE)/tftp/handlers.go \
+  $(HERE)/tftp/interop_test.go \
+  $(HERE)/tftp/tftp.go
+
+
+GOARCHES := amd64 arm arm64 ppc64le s390x
 
 
 .PHONY: all
-all: build
+all: $(addprefix $(CURDIR)/out/, $(addsuffix /pixiecore, $(GOARCHES)))
+
+
+$(CURDIR)/out/%/pixiecore: GOARCH=$(notdir $(patsubst %/,%,$(dir $@)))
+$(CURDIR)/out/%/pixiecore: $(GO_FILES)
+	mkdir -vp $(dir $@)
+	GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOARCH=$(GOARCH) GOARM=6 \
+	go build -buildmode=pie -ldflags=$(GO_LDFLAGS) -o $@ $(CURDIR)/cmd/pixiecore
+
+
+.PHONY: install
+install:
+	go install $(CURDIR)/cmd/pixiecore
 
 
 .PHONY: manifest-tool
 manifest-tool:
 	GO111MODULE=off go get -u -v github.com/estesp/manifest-tool
-
-
-.PHONY: ci-prepare
-ci-prepare: manifest-tool
-
-
-.PHONY: build
-build:
-	GO111MODULE=on go install ./cmd/pixiecore
 
 
 .PHONY: test
@@ -40,6 +108,41 @@ lint:
 
 .PHONY: check
 check: lint test
+
+
+# ifeq (,$(strip $(GOARCH)))
+#   $(error undefined GOARCH)
+# endif
+# ifeq (,$(strip $(REGISTRY)))
+#   $(error undefined REGISTRY)
+# endif
+# ifeq (,$(strip $(BINARY)))
+#   $(error undefined BINARY)
+# endif
+# ifeq (,$(strip $(TAG)))
+#   $(error undefined TAG)
+# endif
+
+.PHONY: images
+images: IMAGE_NAME := registry.gitlab.com/realtime-neil/netboot
+images:
+	{ \
+	true \
+	&& mkdir -vp $(HERE)/out \
+	&& touch $(HERE)/out/netboot.tar \
+	&& docker container run \
+    --interactive \
+    --mount type=bind,readonly,source="$(HERE)",target="$(HERE)" \
+    --mount type=bind,source="$(HERE)/out",target="$(HERE)/out" \
+    --rm \
+	gcr.io/kaniko-project/executor \
+	--no-push \
+	--context $(HERE) \
+	--dockerfile $(HERE)/Dockerfile \
+	--destination $(IMAGE_NAME) \
+	--target stage1 \
+	--tarPath $(HERE)/out/netboot.tar \
+	; }
 
 
 .PHONY: ci-push-images
@@ -65,9 +168,8 @@ ci-config:
 	(cd .circleci && go run gen-config.go >config.yml)
 
 
-.PHONY: go-bindata
-go-bindata:
-	GO111MODULE=off go get github.com/go-bindata/go-bindata/...
+.PHONY: update-ipxe
+update-ipxe: $(HERE)/ipxe/ipxe.go
 
 
 IPXE_BINS := \
@@ -75,6 +177,17 @@ IPXE_BINS := \
   third_party/ipxe/bin-x86_64-efi/ipxe.efi \
   third_party/ipxe/bin/ipxe.pxe \
   third_party/ipxe/bin/undionly.kpxe
+
+
+$(CURDIR)/ipxe/ipxe.go: go-bindata $(IPXE_BINS)
+	rm -vf $@
+	go-bindata -o $@ -pkg ipxe -nometadata -nomemcopy -prefix third_party/ipxe $(sort $(dir $(IPXE_BINS)))
+	gofmt -s -w $@
+
+
+.PHONY: go-bindata
+go-bindata:
+	GO111MODULE=off go get github.com/go-bindata/go-bindata/...
 
 
 # be clever (but not too clever) with Makefile targets and variables
@@ -99,17 +212,9 @@ third_party/ipxe/bin%: $(HERE)/pixiecore/boot.ipxe
 	cp -v third_party/ipxe/src/$(@:third_party/ipxe/%=%) $@
 
 
-ipxe/ipxe.go: go-bindata $(IPXE_BINS)
-	rm -vf $@
-	go-bindata -o $@ -pkg ipxe -nometadata -nomemcopy -prefix third_party/ipxe $(sort $(dir $(IPXE_BINS)))
-	gofmt -s -w $@
-
-
-.PHONY: update-ipxe
-update-ipxe: ipxe/ipxe.go
-
-
 .PHONY: clean
 clean:
-	rm -rf $(sort $(dir $(IPXE_BINS)))
+	if false; then go clean; fi
+	rm -rf $(HERE)/out $(sort $(dir $(IPXE_BINS)))
 	$(MAKE) -C third_party/ipxe/src clean veryclean
+

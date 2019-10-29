@@ -151,6 +151,25 @@ const (
 	FirmwarePixiecoreIpxe                 // Pixiecore's iPXE, which has replaced the underlying firmware
 )
 
+func (fw Firmware) String() string {
+	switch fw {
+	case FirmwareX86PC:
+		return "FirmwareX86PC"
+	case FirmwareEFI32:
+		return "FirmwareEFI32"
+	case FirmwareEFI64:
+		return "FirmwareEFI64"
+	case FirmwareEFIBC:
+		return "FirmwareEFIBC"
+	case FirmwareX86Ipxe:
+		return "FirmwareX86Ipxe"
+	case FirmwarePixiecoreIpxe:
+		return "FirmwarePixiecoreIpxe"
+	default:
+		return "Unknown firmware"
+	}
+}
+
 // A Server boots machines using a Booter.
 type Server struct {
 	Booter Booter

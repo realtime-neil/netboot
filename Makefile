@@ -14,64 +14,64 @@ endif
 
 
 GO_FILES := \
-  $(HERE)/cmd/pixiecore-apache2/main.go \
-  $(HERE)/cmd/pixiecore/main.go \
-  $(HERE)/dhcp4/conn.go \
-  $(HERE)/dhcp4/conn_linux.go \
-  $(HERE)/dhcp4/conn_linux_test.go \
-  $(HERE)/dhcp4/conn_test.go \
-  $(HERE)/dhcp4/conn_unsupported.go \
-  $(HERE)/dhcp4/doc.go \
-  $(HERE)/dhcp4/options.go \
-  $(HERE)/dhcp4/options_test.go \
-  $(HERE)/dhcp4/packet.go \
-  $(HERE)/dhcp4/packet_test.go \
-  $(HERE)/dhcp6/address_pool.go \
-  $(HERE)/dhcp6/boot_configuration.go \
-  $(HERE)/dhcp6/conn.go \
-  $(HERE)/dhcp6/options.go \
-  $(HERE)/dhcp6/options_test.go \
-  $(HERE)/dhcp6/packet.go \
-  $(HERE)/dhcp6/packet_builder.go \
-  $(HERE)/dhcp6/packet_builder_test.go \
-  $(HERE)/dhcp6/packet_test.go \
-  $(HERE)/dhcp6/pool/random_address_pool.go \
-  $(HERE)/dhcp6/pool/random_address_pool_test.go \
-  $(HERE)/ipxe/ipxe.go \
-  $(HERE)/pcap/reader.go \
-  $(HERE)/pcap/reader_test.go \
-  $(HERE)/pcap/writer.go \
-  $(HERE)/pcap/writer_test.go \
-  $(HERE)/pixiecore/api-example/main.go \
-  $(HERE)/pixiecore/boot_configuration.go \
-  $(HERE)/pixiecore/booters.go \
-  $(HERE)/pixiecore/booters_test.go \
-  $(HERE)/pixiecore/cli/apicmd.go \
-  $(HERE)/pixiecore/cli/bootcmd.go \
-  $(HERE)/pixiecore/cli/bootipv6cmd.go \
-  $(HERE)/pixiecore/cli/cli.go \
-  $(HERE)/pixiecore/cli/debugcmd.go \
-  $(HERE)/pixiecore/cli/ipv6apicmd.go \
-  $(HERE)/pixiecore/cli/logging.go \
-  $(HERE)/pixiecore/cli/quickcmd.go \
-  $(HERE)/pixiecore/cli/v1compat.go \
-  $(HERE)/pixiecore/dhcp.go \
-  $(HERE)/pixiecore/dhcpv6.go \
-  $(HERE)/pixiecore/http.go \
-  $(HERE)/pixiecore/http_test.go \
-  $(HERE)/pixiecore/logging.go \
-  $(HERE)/pixiecore/pixicorev6.go \
-  $(HERE)/pixiecore/pixiecore.go \
-  $(HERE)/pixiecore/pxe.go \
-  $(HERE)/pixiecore/tftp.go \
-  $(HERE)/pixiecore/urlsign.go \
-  $(HERE)/pixiecore/urlsign_test.go \
-  $(HERE)/tftp/handlers.go \
-  $(HERE)/tftp/interop_test.go \
-  $(HERE)/tftp/tftp.go
+  cmd/pixiecore-apache2/main.go \
+  cmd/pixiecore/main.go \
+  dhcp4/conn.go \
+  dhcp4/conn_linux.go \
+  dhcp4/conn_linux_test.go \
+  dhcp4/conn_test.go \
+  dhcp4/conn_unsupported.go \
+  dhcp4/doc.go \
+  dhcp4/options.go \
+  dhcp4/options_test.go \
+  dhcp4/packet.go \
+  dhcp4/packet_test.go \
+  dhcp6/address_pool.go \
+  dhcp6/boot_configuration.go \
+  dhcp6/conn.go \
+  dhcp6/options.go \
+  dhcp6/options_test.go \
+  dhcp6/packet.go \
+  dhcp6/packet_builder.go \
+  dhcp6/packet_builder_test.go \
+  dhcp6/packet_test.go \
+  dhcp6/pool/random_address_pool.go \
+  dhcp6/pool/random_address_pool_test.go \
+  ipxe/ipxe.go \
+  pcap/reader.go \
+  pcap/reader_test.go \
+  pcap/writer.go \
+  pcap/writer_test.go \
+  pixiecore/api-example/main.go \
+  pixiecore/boot_configuration.go \
+  pixiecore/booters.go \
+  pixiecore/booters_test.go \
+  pixiecore/cli/apicmd.go \
+  pixiecore/cli/bootcmd.go \
+  pixiecore/cli/bootipv6cmd.go \
+  pixiecore/cli/cli.go \
+  pixiecore/cli/debugcmd.go \
+  pixiecore/cli/ipv6apicmd.go \
+  pixiecore/cli/logging.go \
+  pixiecore/cli/quickcmd.go \
+  pixiecore/cli/v1compat.go \
+  pixiecore/dhcp.go \
+  pixiecore/dhcpv6.go \
+  pixiecore/http.go \
+  pixiecore/http_test.go \
+  pixiecore/logging.go \
+  pixiecore/pixicorev6.go \
+  pixiecore/pixiecore.go \
+  pixiecore/pxe.go \
+  pixiecore/tftp.go \
+  pixiecore/urlsign.go \
+  pixiecore/urlsign_test.go \
+  tftp/handlers.go \
+  tftp/interop_test.go \
+  tftp/tftp.go
 
 
-GOARCHES := amd64 arm arm64 ppc64le s390x
+GOARCHES := amd64
 
 
 .PHONY: all
@@ -81,7 +81,7 @@ all: $(addprefix $(CURDIR)/out/, $(addsuffix /pixiecore, $(GOARCHES)))
 $(CURDIR)/out/%/pixiecore: GOARCH=$(notdir $(patsubst %/,%,$(dir $@)))
 $(CURDIR)/out/%/pixiecore: $(GO_FILES)
 	mkdir -vp $(dir $@)
-	GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOARCH=$(GOARCH) GOARM=6 \
+	GO111MODULE=on GOOS=linux GOARCH=$(GOARCH) \
 	go build -buildmode=pie -ldflags=$(GO_LDFLAGS) -o $@ $(CURDIR)/cmd/pixiecore
 
 
@@ -173,15 +173,16 @@ update-ipxe: $(HERE)/ipxe/ipxe.go
 
 
 IPXE_BINS := \
-  third_party/ipxe/bin-i386-efi/ipxe.efi \
-  third_party/ipxe/bin-x86_64-efi/ipxe.efi \
-  third_party/ipxe/bin/ipxe.pxe \
-  third_party/ipxe/bin/undionly.kpxe
+  third_party/ipxe/src/bin-i386-efi/ipxe.efi \
+  third_party/ipxe/src/bin-x86_64-efi/ipxe.efi \
+  third_party/ipxe/src/bin/ipxe.pxe \
+  third_party/ipxe/src/bin/undionly.kpxe
 
 
-$(CURDIR)/ipxe/ipxe.go: go-bindata $(IPXE_BINS)
-	rm -vf $@
-	go-bindata -o $@ -pkg ipxe -nometadata -nomemcopy -prefix third_party/ipxe $(sort $(dir $(IPXE_BINS)))
+ipxe/ipxe.go: go-bindata $(IPXE_BINS)
+	mkdir -vp $(dir $@)
+	tar -cf- $(IPXE_BINS) | tar -C $(dir $@) --strip-components=3 -vxf-
+	find $(dir $@) -mindepth 1 -type d -exec go-bindata -o $@ -pkg ipxe -prefix ipxe -nometadata -nomemcopy {} +
 	gofmt -s -w $@
 
 
@@ -200,21 +201,20 @@ go-bindata:
 # https://github.com/ipxe/ipxe/pull/82
 # https://git.ipxe.org/ipxe.git/commitdiff/58f6e553625c90d928ddd54b8f31634a5b26f05e
 # http://lists.ipxe.org/pipermail/ipxe-devel/2015-February/003978.html
-third_party/ipxe/bin%: $(HERE)/pixiecore/boot.ipxe
+$(IPXE_BINS) : $(HERE)/pixiecore/boot.ipxe
 	( \
 	$(MAKE) -C third_party/ipxe/src \
-	$(@:third_party/ipxe/%=%) \
 	BUILD_ID_CMD="echo 0x00000000" \
 	BUILD_TIMESTAMP="0x00000000" \
 	EMBED="$<" \
+	$(@:third_party/ipxe/src/%=%) \
 	)
-	mkdir -vp $(dir $@)
-	cp -v third_party/ipxe/src/$(@:third_party/ipxe/%=%) $@
 
 
 .PHONY: clean
 clean:
 	if false; then go clean; fi
 	rm -rf $(HERE)/out $(sort $(dir $(IPXE_BINS)))
+	find ipxe -mindepth 1 -type d -exec rm -vrf {} +
 	$(MAKE) -C third_party/ipxe/src clean veryclean
 

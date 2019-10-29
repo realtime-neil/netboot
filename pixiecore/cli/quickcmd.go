@@ -292,7 +292,7 @@ func netbootRecipe(parent *cobra.Command) {
 		Long: `https://network.xyz allows to boot multiple operating
 	systems and useful system utilities.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			kernel := "https://boot.netboot.xyz/ipxe/netboot.xyz.lkrn"
+			kernel := "https://boot.netboot.xyz/ipxe/netboot.xyz.kpxe"
 			fmt.Println(staticFromFlags(cmd, kernel, []string{}, "").Serve())
 		},
 	}

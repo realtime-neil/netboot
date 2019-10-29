@@ -42,7 +42,7 @@ func (s *Server) serveDHCP(conn *dhcp4.Conn) error {
 			continue
 		}
 
-		s.debug("DHCP", "Got valid request to boot %s (%s)", mach.MAC, mach.Arch)
+		s.debug("DHCP", "Got valid request to boot %s (%s) (%s)", mach.MAC, mach.Arch, fwtype)
 
 		spec, err := s.Booter.BootSpec(mach)
 		if err != nil {
@@ -57,8 +57,10 @@ func (s *Server) serveDHCP(conn *dhcp4.Conn) error {
 
 		s.log("DHCP", "Offering to boot %s", pkt.HardwareAddr)
 		if fwtype == FirmwarePixiecoreIpxe {
+			s.debug("DHCP", "Offering to boot machineStateProxyDHCPIpxe")
 			s.machineEvent(pkt.HardwareAddr, machineStateProxyDHCPIpxe, "Offering to boot iPXE")
 		} else {
+			s.debug("DHCP", "Offering to boot machineStateProxyDHCP")
 			s.machineEvent(pkt.HardwareAddr, machineStateProxyDHCP, "Offering to boot")
 		}
 

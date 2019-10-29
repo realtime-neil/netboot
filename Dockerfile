@@ -7,6 +7,6 @@ RUN make -j$(nproc)
 
 FROM alpine:latest AS deploy
 RUN apk add -U ca-certificates
-COPY --from=build /go/src/github.com/danderson/netboot/out/pixiecore /netboot/pixiecore
-ENTRYPOINT [ "/netboot/pixiecore" ]
+COPY --from=build /go/src/github.com/danderson/netboot/out/pixiecore /pixiecore
+ENTRYPOINT [ "/pixiecore" ]
 CMD [ "help" ]

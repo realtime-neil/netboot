@@ -108,6 +108,7 @@ func (s *Server) handleIpxe(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "couldn't get a boot script", http.StatusInternalServerError)
 		return
 	}
+	s.debug("HTTP", "ipxe script:\n%s", script)
 
 	s.log("HTTP", "Sending ipxe boot script to %s", r.RemoteAddr)
 	start = time.Now()

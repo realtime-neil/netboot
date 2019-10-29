@@ -71,17 +71,13 @@ GO_FILES := \
   tftp/tftp.go
 
 
-GOARCHES := amd64
-
-
 .PHONY: all
-all: $(addprefix $(CURDIR)/out/, $(addsuffix /pixiecore, $(GOARCHES)))
+all: out/pixiecore
 
 
-$(CURDIR)/out/%/pixiecore: GOARCH=$(notdir $(patsubst %/,%,$(dir $@)))
-$(CURDIR)/out/%/pixiecore: $(GO_FILES)
+out/pixiecore: $(GO_FILES)
 	mkdir -vp $(dir $@)
-	GO111MODULE=on GOOS=linux GOARCH=$(GOARCH) \
+	GO111MODULE=on GOOS=linux \
 	go build -buildmode=pie -ldflags=$(GO_LDFLAGS) -o $@ $(CURDIR)/cmd/pixiecore
 
 

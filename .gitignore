@@ -3,8 +3,8 @@ build/
 cmd/pixiecore-apache2/pixiecore-apache2
 cmd/pixiecore/pixiecore
 dhcp4/dhcp4.test
+ipxe/bin*
 out/
 pcap/pcap.test
 pixiecore/pixiecore.test
-third_party/ipxe/bin*
 vendor/
